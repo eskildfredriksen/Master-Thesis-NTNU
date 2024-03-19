@@ -8,7 +8,7 @@ import helper_methods_PDF as hmpdf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
+# test git save
 #==========USER FILLS IN============#
 #Constants
 #TODO: FIND ALL DEFAULT VALUES FOR CONSTANTS, especially for price
@@ -40,8 +40,6 @@ constants = {
     "constraint_dict": {'Area' : '>=', 'Inertia_moment' : '>=', 'Length' : '>=', 'Material': '=='}
 }
 #========================#
-
-#testpushing123
 
 ### Test from JSON files with Slettelokka data 
 hm.print_header("SLETTELØKKA MATCHING")
