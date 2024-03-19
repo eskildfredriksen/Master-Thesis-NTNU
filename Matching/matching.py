@@ -164,6 +164,16 @@ class Matching():
         # TODO add 'Distance' 'Price' 'Material' 'Density' 'Imperfections' 'Is_column' 'Utilisation' 'Group' 'Quality' 'Max_height' ?
         #TODO Create standalone method for evaluating one column Rj of the incidence matrix. Need this for cutoffs in greedy algorithm as well. 
         start = time.time()
+        #constraints = []
+
+        """
+        for index, row in self.supply.iterrows():
+            if (row[5] == "Window" or row[5] == "Door"):
+                self.constraints = {'Width' : '==', 'Height' : '==', 'Material' : '=='}
+            #elif (row[5] == "Slab"):
+            #    self.constraints = {'Length' : '>=', 'Width' : '==', 'Height' : '==', 'Material' : '=='}
+        """
+
         bool_array = np.full((self.demand.shape[0], self.supply.shape[0]), True) # initiate empty array
         for param, compare in self.constraints.items():
             cond_list = []

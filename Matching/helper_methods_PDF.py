@@ -93,7 +93,7 @@ def extract_results_df_pdf(dict_list, constants):
     results_dict["Constants used"] = used_constants
     return results_dict
 
-def create_random_data_supply_pdf_reports(supply_count, length_min, length_max, area_min, area_max, materials, supply_coords):
+def create_random_data_supply_pdf_reports(supply_count, length_min, length_max, width_min, width_max, height_min, height_max, area_min, area_max, materials, supply_coords):
     """Creates random data for the case studies in the master thesis
 
     Args:
@@ -122,6 +122,8 @@ def create_random_data_supply_pdf_reports(supply_count, length_min, length_max, 
     np.random.RandomState(2023)
     supply = pd.DataFrame()
     supply['Length'] = np.round((length_max - length_min) * np.random.random_sample(size = supply_count) + length_min, 2)
+    supply['Width'] = np.round((width_max - width_min) * np.random.random_sample(size = supply_count) + width_min, 2)
+    supply['Height'] = np.round((height_max - height_min) * np.random.random_sample(size = supply_count) + height_min, 2)
     supply['Area'] = 0 
     supply['Moment of Inertia'] = 0
     supply['Material'] = ""
@@ -149,7 +151,7 @@ def create_random_data_supply_pdf_reports(supply_count, length_min, length_max, 
         supply.loc[row,"Location"]=supply_coords.loc[lokasjon,"Location"]
     return supply
 
-def create_random_data_demand_pdf_reports(demand_count, length_min, length_max, area_min, area_max, materials):
+def create_random_data_demand_pdf_reports(demand_count, length_min, length_max, width_min, width_max, height_min, height_max, area_min, area_max, materials):
     """Creates random data for the case studies in the master thesis
 
     Args:
@@ -175,6 +177,8 @@ def create_random_data_demand_pdf_reports(demand_count, length_min, length_max, 
     np.random.RandomState(2023)
     demand = pd.DataFrame()
     demand['Length'] = np.round((length_max - length_min) * np.random.random_sample(size = demand_count) + length_min, 2)
+    demand['Width'] = np.round((width_max - width_min) * np.random.random_sample(size = demand_count) + width_min, 2)
+    demand['Height'] = np.round((height_max - height_min) * np.random.random_sample(size = demand_count) + height_min, 2)
     demand['Area'] = 0
     demand['Moment of Inertia'] = 0
     demand['Material'] = ""
