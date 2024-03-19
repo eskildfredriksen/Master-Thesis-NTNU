@@ -164,7 +164,7 @@ class Matching():
         # TODO add 'Distance' 'Price' 'Material' 'Density' 'Imperfections' 'Is_column' 'Utilisation' 'Group' 'Quality' 'Max_height' ?
         #TODO Create standalone method for evaluating one column Rj of the incidence matrix. Need this for cutoffs in greedy algorithm as well. 
         start = time.time()
-        #constraints = []
+        #constraints = [] test change
 
         """
         for index, row in self.supply.iterrows():
