@@ -542,6 +542,8 @@ def add_necessary_columns_pdf(dataframe, constants):
     dataframe["Density"] = 0
     dataframe["Site_lat"] = constants["Site latitude"]
     dataframe["Site_lon"] = constants["Site longitude"]
+    #dataframe["Constrants"] = constants["constraint_dict"]
+
 
     if metric == "GWP":
         dataframe["Gwp_factor"] = 0 
@@ -560,6 +562,9 @@ def add_necessary_columns_pdf(dataframe, constants):
         material = dataframe.iloc[row][dataframe.columns.get_loc("Material")].split()[0] #NOTE: Assumes that material-column has the material name as the first word, e.g. "Timber C14" or "Steel ASTM A992"
         dataframe.iloc[row, dataframe.columns.get_loc("Density")] = constants[f"{material.upper()}_DENSITY"]
 
+        #if (material == "Window" or material == "Door"):
+            #dataframe.iloc[row, dataframe.columns.get_loc("Constrants")] = constants["constraint2D_dict"]
+
         if element_type == "S":
             constant_name = f"{material.upper()}_REUSE"
         else:
@@ -573,6 +578,7 @@ def add_necessary_columns_pdf(dataframe, constants):
                 else:
                     price = constants[constant_name + "_PRICE"]
                 dataframe.iloc[row, dataframe.columns.get_loc("Price")] = price
+        
     return dataframe
 
 print_header = lambda matching_name: print("\n"+"="*(len(matching_name)+8) + "\n*** " + matching_name + " ***\n" + "="*(len(matching_name)+8) + "\n")

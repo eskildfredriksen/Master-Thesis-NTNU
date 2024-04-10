@@ -23,6 +23,42 @@ constraint_string = sys.argv[5]
 #Constants
 #TODO: FIND ALL DEFAULT VALUES FOR CONSTANTS, especially for price
 constants = {
+    "CONCRETE_GWP": 28.9,      
+    "CONCRETE_REUSE_GWP": 2.25,        
+    "CONCRETE_DENSITY": 491.0,  
+    "CONCRETE_PRICE": 435, 
+    "CONCRETE_REUSE_PRICE" : 100,
+    
+    "CONCRETE - B35_GWP": 28.9,      
+    "CONCRETE - B35_REUSE_GWP": 2.25,        
+    "CONCRETE - B35_DENSITY": 491.0,  
+    "CONCRETE - B35_PRICE": 435, 
+    "CONCRETE - B35_REUSE_PRICE" : 100,
+
+    "STEEL - S355_GWP": 28.9,      
+    "STEEL - S355_REUSE_GWP": 2.25,        
+    "STEEL - S355_DENSITY": 491.0,  
+    "STEEL - S355_PRICE": 435, 
+    "STEEL - S355_REUSE_PRICE" : 100,
+
+    "STEEL - S235_GWP": 28.9,      
+    "STEEL - S235_REUSE_GWP": 2.25,        
+    "STEEL - S235_DENSITY": 491.0,  
+    "STEEL - S235_PRICE": 435, 
+    "STEEL - S235_REUSE_PRICE" : 100,
+
+    "SLAB_GWP": 28.9,      
+    "SLAB_REUSE_GWP": 2.25,        
+    "SLAB_DENSITY": 491.0,  
+    "SLAB_PRICE": 435, 
+    "SLAB_REUSE_PRICE" : 100,
+
+    "BEAM_GWP": 28.9,      
+    "BEAM_REUSE_GWP": 2.25,        
+    "BEAM_DENSITY": 491.0,  
+    "BEAM_PRICE": 435, 
+    "BEAM_REUSE_PRICE" : 100,
+
     "WINDOW_GWP": 28.9,      
     "WINDOW_REUSE_GWP": 2.25,        
     "WINDOW_DENSITY": 491.0,  
@@ -39,6 +75,7 @@ constants = {
     "TIMBER_REUSE_GWP": 2.25,        # 0.0778*28.9 = 2.25 based on Eberhardt
     "TRANSPORT_GWP": 96.0,    # TODO kg/m3/t based on ????
     "TIMBER_DENSITY": 491.0,  # kg, based on NEPD-3442-2053-EN
+
     "STEEL_GWP": 800, #Random value
     "STEEL_REUSE_GWP": 4, #Random value
     "VALUATION_GWP": 0.6, #In kr:Per kg CO2, based on OECD
@@ -48,6 +85,8 @@ constants = {
     "STEEL_REUSE_PRICE": 200, #Per m^2, Random value
     "PRICE_TRANSPORTATION": 3.78, #Price per km per tonn. Derived from 2011 numbers on scaled t0 2022 using SSB
     "STEEL_DENSITY": 7850,
+
+
     ########################
     "Project name": "Sognsveien 17",
     "Metric": "GWP",
@@ -56,11 +95,30 @@ constants = {
     "Include transportation": False,
     "Site latitude": "59.94161606",
     "Site longitude": "10.72994518",
-    "Demand file location": r"./TestCases/Data/CSV/test_demand.xlsx",
-    "Supply file location": r"./TestCases/Data/CSV/test_supply.xlsx",
-    #"Demand file location": r"./TestCases/Data/CSV/test_demand.csv",
-    #"Supply file location": r"./TestCases/Data/CSV/test_supply.csv",
-    "constraint_dict": {'Area' : '>=', 'Moment of Inertia' : '>=', 'Length' : '>=', 'Width' : '>=', 'Height' : '>=', 'Material': '=='},
+    "Demand file location": r"./TestCases/Data/CSV/test_demand_IFC.xlsx",
+    "Supply file location": r"./TestCases/Data/CSV/test_supply_IFC.xlsx",
+    #"Demand file location": r"./TestCases/Data/CSV/test_demand_IFC.csv",
+    #"Supply file location": r"./TestCases/Data/CSV/test_supply_IFC.csv",
+
+    "tol_1D_area" : "0.9",
+    "tol_1D_moment_of_inertia" : "0.9",
+    "tol_1D_length" : "0.9",
+    "tol_1D_width" : "0.9",
+    "tol_1D_height" : "0.9",  
+    "tol_1D_quality" : "0.9",
+
+    "tol_2D_width" : "0.9",
+    "tol_2D_height" : "0.9",
+    "tol_2D_quality" : "0.9",
+
+    "tol_3D_length" : "0.9",
+    "tol_3D_width" : "0.9",
+    "tol_3D_height" : "0.9",
+    "tol_3D_quality" : "0.9",
+
+    "constraint_dict": {'Area' : '>=', 'Moment of Inertia' : '>=', 'Length' : '>=', 'Width' : '>=', 'Height' : '>=', 'Material': '==', 'Quality' : '>='},
+    "constraint2D_dict" :  {'Width' : '==', 'Height' : '==', 'Material' : '==', 'Quality' : '>='},
+    "constraint3D_dict" :  {'Length' : '>=','Width' : '==', 'Height' : '==', 'Material' : '==', 'Quality' : '>='}
 }
 #========================#
 #Generating dataset
@@ -79,7 +137,8 @@ supply_coords.loc[len(supply_coords)] = storlien
 
 
 
-materials = ["Timber", "Steel", "Window", "Door", "Slab"]
+materials = ["Timber", "Steel", "Window", "Door", "Slab", "Concrete - B35", "Steel - S355", "Steel - S235"]
+name = ["IfcBeam", "IfcColumn", "IfcSlab"]
 
 #GENERATE FILE
 #============
@@ -97,14 +156,20 @@ demand = hm.import_dataframe_from_file(r"" + constants["Demand file location"], 
 #hm.create_graph(supply, demand, "Length", number_of_intervals= 2, save_filename = r"C:\Users\sigur\Downloads\test.png")
 
 constraint_dict = constants["constraint_dict"]
+constraint2D_dict = constants["constraint2D_dict"]
+constraint3D_dict = constants["constraint3D_dict"]
 #Add necessary columns to run the algorithm
 supply = hmpdf.add_necessary_columns_pdf(supply, constants)
 demand = hmpdf.add_necessary_columns_pdf(demand, constants)
-run_string = hm.generate_run_string(constants)
-result_simple = eval(run_string)
 
-simple_pairs = hm.extract_pairs_df(result_simple)
-simple_results = hm.extract_results_df(result_simple, constants["Metric"])
+m= Matching(demand, supply, score_function_string, constraints = constraint_dict, constraints2D = constraint2D_dict, constraints3D = constraint3D_dict, solution_limit=60)
+
+m.match_greedy(plural_assign=True)
+print(m.weights)
+simple_pairs = m.pairs
+m.calculate_result()
+simple_results = m.result
+
 
 print("Simple pairs:")
 print(simple_pairs)

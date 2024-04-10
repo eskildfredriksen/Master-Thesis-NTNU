@@ -33,7 +33,7 @@ logging.basicConfig(
 
 class Matching():
     """Class describing the matching problem, with its constituent parts."""
-    def __init__(self, demand, supply, score_function_string, add_new=False, multi=False, constraints={}, solution_limit=60):
+    def __init__(self, demand, supply, score_function_string, add_new=False, multi=False, constraints={}, constraints2D={}, constraints3D={}, solution_limit=60):
         """_summary_
 
         :param demand: _description_
@@ -48,6 +48,10 @@ class Matching():
         :type multi: bool, optional
         :param constraints: _description_, defaults to {}
         :type constraints: dict, optional
+        :param constraints2D: _description_, defaults to {}
+        :type constraints2D: dict, optional
+        :param constraints3D: _description_, defaults to {}
+        :type constraints3D: dict, optional
         :param solution_limit: _description_, defaults to 60
         :type solution_limit: int, optional
         """
@@ -80,6 +84,8 @@ class Matching():
         self.pairs = pd.DataFrame(None, index=self.demand.index.values.tolist(), columns=['Supply_id']) #saves latest array of pairs
         self.incidence = pd.DataFrame(np.nan, index=self.demand.index.values.tolist(), columns=self.supply.index.values.tolist())
         self.constraints = constraints
+        self.constraints2D = constraints2D
+        self.constraints3D = constraints3D
         self.solution_time = None
         self.solution_limit = solution_limit           
         #Create incidence and weight for the method
@@ -87,6 +93,7 @@ class Matching():
         self.supply['Score'] = self.supply.eval(score_function_string)[0]
         self.incidence = self.evaluate_incidence()
         self.weights, self.weights_transport = self.evaluate_weights()
+        #self.match_greedy(plural_assign=True)
         logging.info("Matching object created with %s demand, and %s supply elements", len(demand), len(supply))
 
     def __copy__(self):
@@ -157,7 +164,7 @@ class Matching():
         else:
             self.supply["Distance"] = np.NaN
             self.demand["Distance"] = np.NaN
-        
+
     def evaluate_incidence(self):
         """Returns incidence matrix with true values where the element fit constraint criteria"""    
         # TODO optimize the evaluation.
@@ -166,37 +173,77 @@ class Matching():
         start = time.time()
         #constraints = [] test change
 
-        """
-        for index, row in self.supply.iterrows():
-            if (row[5] == "Window" or row[5] == "Door"):
-                self.constraints = {'Width' : '==', 'Height' : '==', 'Material' : '=='}
-            #elif (row[5] == "Slab"):
-            #    self.constraints = {'Length' : '>=', 'Width' : '==', 'Height' : '==', 'Material' : '=='}
-        """
-
         bool_array = np.full((self.demand.shape[0], self.supply.shape[0]), True) # initiate empty array
-        for param, compare in self.constraints.items():
-            cond_list = []
-            for var in self.supply[param]:
-                demand_array = self.demand[param].to_list()
-                if isinstance(demand_array[0], str): #Assumes that target is to compare two text strings, "Timber" == "Timber"
-                    bool_col = np.array(eval(f"['{var}' {compare} x for x in demand_array]"))
-                else:
-                    bool_col = ne.evaluate(f'{var} {compare} demand_array') # numpy array of boolean NOTE: Does not work when evaluating material given as a "String"
-                cond_list.append(bool_col)
-            cond_array = np.column_stack(cond_list) #create new 2D-array of conditionals
-            bool_array = ne.evaluate("cond_array & bool_array") # 
-            #bool_array = np.logical_and(bool_array, cond_array)
-        # for simplicity I restrict the incidence of new elements to only be True for the "new" equivalent
-        inds = self.supply.index[self.supply.index.map(lambda s: 'N' in s)] # Get the indices for new elements
-        if len(inds) > 0:
-            diag_mat = np.full((len(inds), len(inds)), False)
-            np.fill_diagonal(diag_mat, True) # create a diagonal with True on diag, False else. 
-            bool_array = np.hstack((bool_array[:, :-len(inds)], diag_mat))
+        constraint_dict = self.constraints.items()
+        iindex = 0
+        jindex = 0
+        nrSupply = self.incidence.shape[1]
+        nrDemand = self.incidence.shape[0]
+        for i in range(len(self.supply)):
+            if iindex < nrSupply:
+                for j in range(len(self.demand)):
+                    print(self.supply.iloc[i, 1], self.demand.iloc[j, 1])
+                    print(i,j)
+                    #Check if element type is right
+                    if (self.supply.iloc[i, 1] != self.demand.iloc[j, 1]):
+                        bool_array[i][j] = False
+                        print(bool_array)
+                    #Check if material type is right
+                    if (self.supply.iloc[i, 2] != self.demand.iloc[j, 2]):
+                        bool_array[i][j] = False
+                        print(bool_array)
+                    #Check if the constraints are right for the type of element 
+                    else:
+                       
+                        #If the elements are linear 
+                        if (self.supply.iloc[i, 1] == "IfcBeam" or self.supply.iloc[i, 1] == "IfcColumn"):
+                            for param, compare in self.constraints.items():
+                                supply_array = self.supply[param].to_list()
+                                demand_array = self.demand[param].to_list()
+                                if eval(f"supply_array[i] {compare} demand_array[j]"):
+                                    print(param)
+                                    print(f"supply_array[i] {compare} demand_array[j]")
+                                    bool_array[i][j] = True
+                                    print(bool_array)
+                                else:
+                                    bool_array[i][j] = False
+                                    print(bool_array)
+                                    break
+                        #If the elements are 2D 
+                        if (self.supply.iloc[i, 1] == "IfcWindow" or self.supply.iloc[i, 1] == "IfCDoor"):
+                            for param, compare in self.constraints2D.items():
+                                supply_array = self.supply[param].to_list()
+                                demand_array = self.demand[param].to_list()
+                                if eval(f"supply_array[i] {compare} demand_array[j]"):
+                                    print(param)
+                                    print(f"supply_array[i] {compare} demand_array[j]")
+                                    bool_array[i][j] = True
+                                    print(bool_array)
+                                else:
+                                    bool_array[i][j] = False
+                                    print(bool_array)
+                                    break
+                        #If the elements are 3D 
+                        if (self.supply.iloc[i, 1] == "IfcSlab"):
+                            for param, compare in self.constraints3D.items():
+                                supply_array = self.supply[param].to_list()
+                                demand_array = self.demand[param].to_list()
 
-        end = time.time()
-        logging.info("Create incidence matrix from constraints: %s sec", round(end - start,3))
+                                if eval(f"supply_array[i] {compare} demand_array[j]"):
+                                    print(param)
+                                    print(f"supply_array[i] {compare} demand_array[j]")
+                                    bool_array[i][j] = True
+                                    print(bool_array)
+                                else:
+                                    bool_array[i][j] = False
+                                    print(bool_array)
+                                    break
+                      
+                iindex += 1
+        print(bool_array)
         return pd.DataFrame(bool_array, columns= self.incidence.columns, index= self.incidence.index)
+
+
 
     def evaluate_column(self, supply_val, parameter, compare, current_bool):
         """Evaluates a column in the incidence matrix according to the constraints
@@ -222,7 +269,7 @@ class Matching():
         weights_transport[el_locs0[0], el_locs0[1]] = eval_score_transport
         end = time.time()  
         logging.info("Weight evaluation of incidence matrix: %s sec", round(end - start, 3))
-        return pd.DataFrame(weights, index = self.incidence.index, columns = self.incidence.columns), pd.DataFrame(weights_transport, index = self.incidence.index, columns = self.incidence.columns)
+        return pd.DataFrame(weights, index = self.incidence.index, columns = self.incidence.columns) ,pd.DataFrame(weights_transport, index = self.incidence.index, columns = self.incidence.columns)
 
     def add_pair(self, demand_id, supply_id):
         """Execute matrix matching"""
