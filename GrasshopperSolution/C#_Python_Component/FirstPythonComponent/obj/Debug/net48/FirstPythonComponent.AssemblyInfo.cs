@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Description of FirstPythonComponent")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+1a4f35b228867c4952c1d29c81ac2901f11dea20")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+3852e87b87c9c4a8c8b142bce85ad3eaa7d90ec4")]
 [assembly: System.Reflection.AssemblyProductAttribute("FirstPythonComponent")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FirstPythonComponent")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -542,9 +542,11 @@ def add_necessary_columns_pdf(dataframe, constants):
     dataframe["Density"] = 0
     dataframe["Site_lat"] = constants["Site latitude"]
     dataframe["Site_lon"] = constants["Site longitude"]
-    #dataframe["Constrants"] = constants["constraint_dict"]
+    dataframe["Gwp_factor"] = 0 
+    dataframe["Price"] = 0
 
 
+    """    
     if metric == "GWP":
         dataframe["Gwp_factor"] = 0 
     elif metric == "Combined":
@@ -552,6 +554,8 @@ def add_necessary_columns_pdf(dataframe, constants):
         dataframe["Price"] = 0
     elif metric == "Price":
         dataframe["Price"] = 0
+    """   
+
 
     #If dataframe is demand, fill in the location and corresponding coordinates and to the closet manufacturer.
     if element_type=="D" and constants["Include transportation"]:
@@ -562,13 +566,20 @@ def add_necessary_columns_pdf(dataframe, constants):
         material = dataframe.iloc[row][dataframe.columns.get_loc("Material")].split()[0] #NOTE: Assumes that material-column has the material name as the first word, e.g. "Timber C14" or "Steel ASTM A992"
         dataframe.iloc[row, dataframe.columns.get_loc("Density")] = constants[f"{material.upper()}_DENSITY"]
 
-        #if (material == "Window" or material == "Door"):
-            #dataframe.iloc[row, dataframe.columns.get_loc("Constrants")] = constants["constraint2D_dict"]
-
         if element_type == "S":
             constant_name = f"{material.upper()}_REUSE"
         else:
             constant_name = f"{material.upper()}"
+
+        
+        dataframe.iloc[row, dataframe.columns.get_loc("Gwp_factor")] = constants[constant_name + "_GWP"]
+        if material.upper() == "STEEL":
+            price = constants[constant_name + "_PRICE"] * constants[f"{material.upper()}_DENSITY"]
+        else:
+            price = constants[constant_name + "_PRICE"]
+        dataframe.iloc[row, dataframe.columns.get_loc("Price")] = price
+        
+        """
 
         if metric == "GWP" or metric == "Combined":
                 dataframe.iloc[row, dataframe.columns.get_loc("Gwp_factor")] = constants[constant_name + "_GWP"]
@@ -578,7 +589,7 @@ def add_necessary_columns_pdf(dataframe, constants):
                 else:
                     price = constants[constant_name + "_PRICE"]
                 dataframe.iloc[row, dataframe.columns.get_loc("Price")] = price
-        
+        """
     return dataframe
 
 print_header = lambda matching_name: print("\n"+"="*(len(matching_name)+8) + "\n*** " + matching_name + " ***\n" + "="*(len(matching_name)+8) + "\n")

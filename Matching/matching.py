@@ -33,7 +33,7 @@ logging.basicConfig(
 
 class Matching():
     """Class describing the matching problem, with its constituent parts."""
-    def __init__(self, demand, supply, score_function_string, add_new=False, multi=False, constraints={}, constraints2D={}, constraints3D={}, solution_limit=60):
+    def __init__(self, demand, supply, score_function_string, score_function_string_2d, constants = None, add_new=False, multi=False, constraints={}, constraints2D={}, constraints3D={}, solution_limit=60):
         """_summary_
 
         :param demand: _description_
@@ -54,18 +54,32 @@ class Matching():
         :type constraints3D: dict, optional
         :param solution_limit: _description_, defaults to 60
         :type solution_limit: int, optional
+        :param constants: _description_, defaults to 60
+        :type constants: int, optional
+        :param score_function_string_2d: _description_, defaults to 60
+        :type score_function_string_2d: int, optional
         """
         self.demand = demand.infer_objects()
         self.supply = supply.infer_objects()
         self.score_function_string = score_function_string.replace(" ", "")
+        self.score_function_string_2d = score_function_string_2d.replace(" ", "")
+
+        #self.price_function_string = price_function_string.replace(" ", "")
         self.evaluate_transportation()
-        
+
         pd.set_option('display.max_columns', 10)
 
         #Calculate the score and transportation score for the demand and supply elements
-        self.demand['Score'], self.demand["Transportation"] = self.demand.eval(self.score_function_string)
-        self.supply['Score'], self.supply["Transportation"] = self.supply.eval(self.score_function_string)
 
+        if tuple(self.demand['Element'].tolist()) in constants["element_linear"] or tuple(self.demand['Element'].tolist()) in constants["element_3d"]:
+            self.demand['Score'], self.demand['Transportation'] = self.demand.eval(self.score_function_string)
+        else:
+            self.demand['Score'], self.demand['Transportation'] = self.demand.eval(self.score_function_string_2d)
+
+        if tuple(self.supply['Element'].tolist()) in constants["element_linear"] or tuple(self.supply['Element'].tolist()) in constants["element_3d"]:
+            self.supply['Score'], self.supply['Transportation'] = self.supply.eval(self.score_function_string)
+        else:
+            self.supply['Score'], self.supply['Transportation'] = self.supply.eval(self.score_function_string_2d)   
 
         if add_new: # just copy designed to supply set, so that they act as new products
             demand_copy = self.demand.copy(deep = True)
@@ -93,6 +107,7 @@ class Matching():
         self.supply['Score'] = self.supply.eval(score_function_string)[0]
         self.incidence = self.evaluate_incidence()
         self.weights, self.weights_transport = self.evaluate_weights()
+        self.constants = constants
         #self.match_greedy(plural_assign=True)
         logging.info("Matching object created with %s demand, and %s supply elements", len(demand), len(supply))
 
@@ -182,65 +197,47 @@ class Matching():
         for i in range(len(self.supply)):
             if iindex < nrSupply:
                 for j in range(len(self.demand)):
-                    print(self.supply.iloc[i, 1], self.demand.iloc[j, 1])
-                    print(i,j)
                     #Check if element type is right
                     if (self.supply.iloc[i, 1] != self.demand.iloc[j, 1]):
                         bool_array[i][j] = False
-                        print(bool_array)
                     #Check if material type is right
-                    if (self.supply.iloc[i, 2] != self.demand.iloc[j, 2]):
+                    elif (self.supply.iloc[i, 2] != self.demand.iloc[j, 2]):
                         bool_array[i][j] = False
-                        print(bool_array)
                     #Check if the constraints are right for the type of element 
                     else:
-                       
                         #If the elements are linear 
                         if (self.supply.iloc[i, 1] == "IfcBeam" or self.supply.iloc[i, 1] == "IfcColumn"):
                             for param, compare in self.constraints.items():
                                 supply_array = self.supply[param].to_list()
                                 demand_array = self.demand[param].to_list()
                                 if eval(f"supply_array[i] {compare} demand_array[j]"):
-                                    print(param)
-                                    print(f"supply_array[i] {compare} demand_array[j]")
                                     bool_array[i][j] = True
-                                    print(bool_array)
                                 else:
                                     bool_array[i][j] = False
-                                    print(bool_array)
                                     break
                         #If the elements are 2D 
-                        if (self.supply.iloc[i, 1] == "IfcWindow" or self.supply.iloc[i, 1] == "IfCDoor"):
+                        elif (self.supply.iloc[i, 1] == "IfcWindow" or self.supply.iloc[i, 1] == "IfcDoor"):
                             for param, compare in self.constraints2D.items():
                                 supply_array = self.supply[param].to_list()
                                 demand_array = self.demand[param].to_list()
                                 if eval(f"supply_array[i] {compare} demand_array[j]"):
-                                    print(param)
-                                    print(f"supply_array[i] {compare} demand_array[j]")
                                     bool_array[i][j] = True
-                                    print(bool_array)
                                 else:
                                     bool_array[i][j] = False
-                                    print(bool_array)
                                     break
                         #If the elements are 3D 
-                        if (self.supply.iloc[i, 1] == "IfcSlab"):
+                        elif (self.supply.iloc[i, 1] == "IfcSlab"):
                             for param, compare in self.constraints3D.items():
                                 supply_array = self.supply[param].to_list()
                                 demand_array = self.demand[param].to_list()
 
                                 if eval(f"supply_array[i] {compare} demand_array[j]"):
-                                    print(param)
-                                    print(f"supply_array[i] {compare} demand_array[j]")
                                     bool_array[i][j] = True
-                                    print(bool_array)
                                 else:
                                     bool_array[i][j] = False
-                                    print(bool_array)
                                     break
                       
                 iindex += 1
-        print(bool_array)
         return pd.DataFrame(bool_array, columns= self.incidence.columns, index= self.incidence.index)
 
 
@@ -270,6 +267,7 @@ class Matching():
         end = time.time()  
         logging.info("Weight evaluation of incidence matrix: %s sec", round(end - start, 3))
         return pd.DataFrame(weights, index = self.incidence.index, columns = self.incidence.columns) ,pd.DataFrame(weights_transport, index = self.incidence.index, columns = self.incidence.columns)
+
 
     def add_pair(self, demand_id, supply_id):
         """Execute matrix matching"""
@@ -836,7 +834,7 @@ def run_matching(demand, supply, score_function_string, constraints = None, add_
         matches.append({'Name': 'MBM Plural Multiple','Match object': copy(matching), 'Time': matching.solution_time, 'PercentNew': matching.pairs.isna().sum()})
     return matches
 
-
+"""
 if __name__ == "__main__":
     DEMAND_JSON = sys.argv[1]
     SUPPLY_JSON = sys.argv[2]
@@ -848,8 +846,10 @@ if __name__ == "__main__":
     result = run_matching(demand, supply, score_function_string=score_function_string, constraints = constraint_dict, add_new = True, sci_milp=False, milp=False, greedy_single=True, greedy_plural = False, bipartite=False, genetic=True)
     simple_pairs = hm.extract_pairs_df(result)
     simple_results = hm.extract_results_df(result)
+    
     print("Simple pairs:")
     print(simple_pairs)
     print()
     print("Simple results")
     print(simple_results)
+    """

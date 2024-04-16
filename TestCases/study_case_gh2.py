@@ -23,41 +23,7 @@ constraint_string = sys.argv[5]
 #Constants
 #TODO: FIND ALL DEFAULT VALUES FOR CONSTANTS, especially for price
 constants = {
-    "CONCRETE_GWP": 28.9,      
-    "CONCRETE_REUSE_GWP": 2.25,        
-    "CONCRETE_DENSITY": 491.0,  
-    "CONCRETE_PRICE": 435, 
-    "CONCRETE_REUSE_PRICE" : 100,
-    
-    "CONCRETE - B35_GWP": 28.9,      
-    "CONCRETE - B35_REUSE_GWP": 2.25,        
-    "CONCRETE - B35_DENSITY": 491.0,  
-    "CONCRETE - B35_PRICE": 435, 
-    "CONCRETE - B35_REUSE_PRICE" : 100,
 
-    "STEEL - S355_GWP": 28.9,      
-    "STEEL - S355_REUSE_GWP": 2.25,        
-    "STEEL - S355_DENSITY": 491.0,  
-    "STEEL - S355_PRICE": 435, 
-    "STEEL - S355_REUSE_PRICE" : 100,
-
-    "STEEL - S235_GWP": 28.9,      
-    "STEEL - S235_REUSE_GWP": 2.25,        
-    "STEEL - S235_DENSITY": 491.0,  
-    "STEEL - S235_PRICE": 435, 
-    "STEEL - S235_REUSE_PRICE" : 100,
-
-    "SLAB_GWP": 28.9,      
-    "SLAB_REUSE_GWP": 2.25,        
-    "SLAB_DENSITY": 491.0,  
-    "SLAB_PRICE": 435, 
-    "SLAB_REUSE_PRICE" : 100,
-
-    "BEAM_GWP": 28.9,      
-    "BEAM_REUSE_GWP": 2.25,        
-    "BEAM_DENSITY": 491.0,  
-    "BEAM_PRICE": 435, 
-    "BEAM_REUSE_PRICE" : 100,
 
     "WINDOW_GWP": 28.9,      
     "WINDOW_REUSE_GWP": 2.25,        
@@ -65,26 +31,35 @@ constants = {
     "WINDOW_PRICE": 435, 
     "WINDOW_REUSE_PRICE" : 100,
 
-    "DOOR_GWP": 28.9,      
-    "DOOR_REUSE_GWP": 2.25,        
-    "DOOR_DENSITY": 491.0,  
-    "DOOR_PRICE": 435, 
-    "DOOR_REUSE_PRICE" : 100,
+    "DOOR_GWP": 10,      
+    "DOOR_REUSE_GWP": 3,        
+    "DOOR_DENSITY": 200,  
+    "DOOR_PRICE": 250, 
+    "DOOR_REUSE_PRICE" : 80,
 
-    "TIMBER_GWP": 28.9,       # based on NEPD-3442-2053-EN
-    "TIMBER_REUSE_GWP": 2.25,        # 0.0778*28.9 = 2.25 based on Eberhardt
-    "TRANSPORT_GWP": 96.0,    # TODO kg/m3/t based on ????
-    "TIMBER_DENSITY": 491.0,  # kg, based on NEPD-3442-2053-EN
+    "TIMBER_GWP": 15,       # based on NEPD-3442-2053-EN
+    "TIMBER_REUSE_GWP": 1.5,        # 0.0778*28.9 = 2.25 based on Eberhardt
+    "TIMBER_DENSITY": 200,  # kg, based on NEPD-3442-2053-EN
+    "TIMBER_PRICE": 100, #Per m^3 https://www.landkredittbank.no/blogg/2021/prisen-pa-sagtommer-okte-20-prosent/
+    "TIMBER_REUSE_PRICE" : 70, #Per m^3, Random value
 
-    "STEEL_GWP": 800, #Random value
-    "STEEL_REUSE_GWP": 4, #Random value
-    "VALUATION_GWP": 0.6, #In kr:Per kg CO2, based on OECD
-    "TIMBER_PRICE": 435, #Per m^3 https://www.landkredittbank.no/blogg/2021/prisen-pa-sagtommer-okte-20-prosent/
-    "TIMBER_REUSE_PRICE" : 100, #Per m^3, Random value
-    "STEEL_PRICE": 500, #Per m^2, Random value
-    "STEEL_REUSE_PRICE": 200, #Per m^2, Random value
-    "PRICE_TRANSPORTATION": 3.78, #Price per km per tonn. Derived from 2011 numbers on scaled t0 2022 using SSB
-    "STEEL_DENSITY": 7850,
+    "CONCRETE_GWP": 400,      
+    "CONCRETE_DENSITY": 491.0,  
+    "CONCRETE_PRICE": 435, 
+    "CONCRETE_REUSE_PRICE" : 100,
+    "CONCRETE_REUSE_GWP": 100,  
+ 
+    "STEEL_GWP": 9263, # [kg CO2 pr m^3] Taken from Trine and Elise 
+    "STEEL_REUSE_GWP": 200, #[kg CO2 pr m^3] Taken from Trine and Elise 
+    "STEEL_PRICE": 6, #[NOK pr m^3] Taken from Trine and Elise 
+    "STEEL_REUSE_PRICE": 67, #[NOK pr m^3] Taken from Trine and Elise 
+    "STEEL_DENSITY": 100, #[kg pr m^3] Taken from Trine and Elise 
+
+    "VALUATION_GWP": 0.7, #In kr:Per kg CO2, based on OECD
+    "PRICE_TRANSPORTATION": 4, #Price per km per tonn. Derived from 2011 numbers on scaled t0 2022 using SSB
+    "TRANSPORT_GWP": 81,    # TODO kg/m3/t based on ????
+    "Price" : 100,
+
 
 
     ########################
@@ -118,12 +93,18 @@ constants = {
 
     "constraint_dict": {'Area' : '>=', 'Moment of Inertia' : '>=', 'Length' : '>=', 'Width' : '>=', 'Height' : '>=', 'Material': '==', 'Quality' : '>='},
     "constraint2D_dict" :  {'Width' : '==', 'Height' : '==', 'Material' : '==', 'Quality' : '>='},
-    "constraint3D_dict" :  {'Length' : '>=','Width' : '==', 'Height' : '==', 'Material' : '==', 'Quality' : '>='}
+    "constraint3D_dict" :  {'Length' : '>=','Width' : '==', 'Height' : '==', 'Material' : '==', 'Quality' : '>='},
+
+    "materials" : {"Timber", "Steel", "Window", "Door", "Slab", "Concrete - B35", "Steel - S355", "Steel - S235"},
+    "element_linear" : {"IfcBeam", "IfcColumn"},
+    "element_2d" : {"IfcWindow", "IfcDoor"},
+    "element_3d" : {"IfcSlab"}
 }
 #========================#
 #Generating dataset
 #===================
 supply_coords = pd.DataFrame(columns = ["Location", "Latitude", "Longitude"])
+
 
 tiller = ["Tiller", "63.3604", "10.4008"]
 gjovik = ["Gjovik", "60.8941", "10.5001"]
@@ -137,8 +118,8 @@ supply_coords.loc[len(supply_coords)] = storlien
 
 
 
-materials = ["Timber", "Steel", "Window", "Door", "Slab", "Concrete - B35", "Steel - S355", "Steel - S235"]
-name = ["IfcBeam", "IfcColumn", "IfcSlab"]
+
+
 
 #GENERATE FILE
 #============
@@ -149,31 +130,84 @@ hm.export_dataframe_to_csv(demand, r"" + "./TestCases/Data/CSV/test_demand.csv")
 """
 #========================================
 score_function_string = hm.generate_score_function_string(constants)
+score_function_string_2d = hm.generate_score_function_string_2d(constants)
+
 supply = hm.import_dataframe_from_file(r"" + constants["Supply file location"], index_replacer = "S")
 demand = hm.import_dataframe_from_file(r"" + constants["Demand file location"], index_replacer = "D")
-
 
 #hm.create_graph(supply, demand, "Length", number_of_intervals= 2, save_filename = r"C:\Users\sigur\Downloads\test.png")
 
 constraint_dict = constants["constraint_dict"]
 constraint2D_dict = constants["constraint2D_dict"]
 constraint3D_dict = constants["constraint3D_dict"]
+
+
 #Add necessary columns to run the algorithm
 supply = hmpdf.add_necessary_columns_pdf(supply, constants)
 demand = hmpdf.add_necessary_columns_pdf(demand, constants)
 
-m= Matching(demand, supply, score_function_string, constraints = constraint_dict, constraints2D = constraint2D_dict, constraints3D = constraint3D_dict, solution_limit=60)
+
+m= Matching(demand, supply, score_function_string, score_function_string_2d, constraints = constraint_dict, constraints2D = constraint2D_dict, constraints3D = constraint3D_dict, solution_limit=60, constants = constants)
 
 m.match_greedy(plural_assign=True)
-print(m.weights)
 simple_pairs = m.pairs
 m.calculate_result()
 simple_results = m.result
-
-
+print("------------------------- Results -------------------------")
+print("Weights matrix ")
+print(m.weights)
+print()
+print("Algorithm used; " + ", ".join(constants["Algorithms"]))
+print()
 print("Simple pairs:")
 print(simple_pairs)
-
 print()
-print("Simple results")
+if (constants["Metric"] == "Price"):
+    print("Simple " + constants["Metric"] + " score;")
+if (constants["Metric"] == "GWP"):
+    print("Simple " + constants["Metric"] + " score;")
+if (constants["Metric"] == "Combined"):
+    print("Simple " + constants["Metric"] + " score;")
 print(simple_results)
+
+constants["Metric"] = "Price"
+score_function_string = hm.generate_score_function_string(constants)
+score_function_string = score_function_string.replace(" ", "")
+
+
+if tuple(m.demand['Element'].tolist()) in constants["element_linear"] or tuple(m.demand['Element'].tolist()) in constants["element_3d"]:
+    m.demand['Price pr element'], m.demand['Transportation'] = m.demand.eval(m.score_function_string)
+else:
+    m.demand['Price pr element'], m.demand['Transportation'] = m.demand.eval(m.score_function_string_2d)
+
+if tuple(m.supply['Element'].tolist()) in constants["element_linear"] or tuple(m.supply['Element'].tolist()) in constants["element_3d"]:
+    m.supply['Price pr element'], m.supply['Transportation'] = m.supply.eval(m.score_function_string)
+else:
+    m.supply['Price pr element'], m.supply['Transportation'] = m.supply.eval(m.score_function_string_2d)   
+
+
+constants["Metric"] = "GWP"
+score_function_string = hm.generate_score_function_string(constants)
+score_function_string = score_function_string.replace(" ", "")
+
+
+if tuple(m.demand['Element'].tolist()) in constants["element_linear"] or tuple(m.demand['Element'].tolist()) in constants["element_3d"]:
+    m.demand['GWP pr element'], m.demand['Transportation'] = m.demand.eval(m.score_function_string)
+else:
+    m.demand['GWP pr element'], m.demand['Transportation'] = m.demand.eval(m.score_function_string_2d)
+
+if tuple(m.supply['Element'].tolist()) in constants["element_linear"] or tuple(m.supply['Element'].tolist()) in constants["element_3d"]:
+    m.supply['GWP pr element'], m.supply['Transportation'] = m.supply.eval(m.score_function_string)
+else:
+    m.supply['GWP pr element'], m.supply['Transportation'] = m.supply.eval(m.score_function_string_2d)   
+
+hm.export_dataframe_to_xlsx(m.supply, r"" + "./TestCases/Data/CSV/test_supply_IFC_result1.xlsx")
+hm.export_dataframe_to_xlsx(m.demand, r"" + "./TestCases/Data/CSV/test_demand_IFS_result1.xlsx")
+hm.export_dataframe_to_xlsx(m.pairs, r"" + "./TestCases/Data/CSV/pairs1.xlsx")
+
+
+
+
+
+print(m.demand)
+print(m.supply)
