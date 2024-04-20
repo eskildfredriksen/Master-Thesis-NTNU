@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./Matching')
+sys.path.append('./app/matchingTool/src/Matching')
 from matching import Matching
 import pandas as pd
 import numpy as np
@@ -48,6 +48,12 @@ constants = {
     "CONCRETE_PRICE": 435, 
     "CONCRETE_REUSE_PRICE" : 100,
     "CONCRETE_REUSE_GWP": 100,  
+
+    "N/A_GWP": 400,      
+    "N/A_DENSITY": 491.0,  
+    "N/A_PRICE": 435, 
+    "N/A_REUSE_PRICE" : 100,
+    "N/A_REUSE_GWP": 100,  
  
     "STEEL_GWP": 9263, # [kg CO2 pr m^3] Taken from Trine and Elise 
     "STEEL_REUSE_GWP": 200, #[kg CO2 pr m^3] Taken from Trine and Elise 
@@ -70,10 +76,10 @@ constants = {
     "Include transportation": False,
     "Site latitude": "59.94161606",
     "Site longitude": "10.72994518",
-    "Demand file location": r"./TestCases/Data/CSV/test_demand_IFC.xlsx",
-    "Supply file location": r"./TestCases/Data/CSV/test_supply_IFC.xlsx",
-    #"Demand file location": r"./TestCases/Data/CSV/test_demand_IFC.csv",
-    #"Supply file location": r"./TestCases/Data/CSV/test_supply_IFC.csv",
+    "Demand file location": r"./app/matchingTool/src/TestCases/Data/CSV/Demand_homemade.xlsx",
+    "Supply file location": r"./app/matchingTool/src/TestCases/Data/CSV/Supply_homemade.xlsx",
+    #"Demand file location": r"./app/matchingTool/src/TestCases/Data/CSV/test_demand_IFC.csv",
+    #"Supply file location": r"./app/matchingTool/src/TestCases/Data/CSV/test_supply_IFC.csv",
 
     "tol_1D_area" : "0.9",
     "tol_1D_moment_of_inertia" : "0.9",
@@ -91,11 +97,11 @@ constants = {
     "tol_3D_height" : "0.9",
     "tol_3D_quality" : "0.9",
 
-    "constraint_dict": {'Area' : '>=', 'Moment of Inertia' : '>=', 'Length' : '>=', 'Width' : '>=', 'Height' : '>=', 'Material': '==', 'Quality' : '>='},
+    "constraint_dict": {'Area' : '>=', 'Iy e-6' : '>=', 'Length' : '>=', 'Width' : '>=', 'Height' : '>=', 'Material': '==', 'Quality' : '>='},
     "constraint2D_dict" :  {'Width' : '==', 'Height' : '==', 'Material' : '==', 'Quality' : '>='},
     "constraint3D_dict" :  {'Length' : '>=','Width' : '==', 'Height' : '==', 'Material' : '==', 'Quality' : '>='},
 
-    "materials" : {"Timber", "Steel", "Window", "Door", "Slab", "Concrete - B35", "Steel - S355", "Steel - S235"},
+    "Name" : {"Timber", "Steel", "Window", "Door", "Slab", "Concrete - B35", "Steel - S355", "Steel - S235"},
     "element_linear" : {"IfcBeam", "IfcColumn"},
     "element_2d" : {"IfcWindow", "IfcDoor"},
     "element_3d" : {"IfcSlab"}
@@ -147,7 +153,7 @@ supply = hmpdf.add_necessary_columns_pdf(supply, constants)
 demand = hmpdf.add_necessary_columns_pdf(demand, constants)
 
 
-m= Matching(demand, supply, score_function_string, score_function_string_2d, constraints = constraint_dict, constraints2D = constraint2D_dict, constraints3D = constraint3D_dict, solution_limit=60, constants = constants)
+m= Matching(demand, supply, score_function_string, score_function_string_2d, constants, constraints = constraint_dict, constraints2D = constraint2D_dict, constraints3D = constraint3D_dict, solution_limit=60)
 
 m.match_greedy(plural_assign=True)
 simple_pairs = m.pairs
@@ -169,6 +175,10 @@ if (constants["Metric"] == "GWP"):
 if (constants["Metric"] == "Combined"):
     print("Simple " + constants["Metric"] + " score;")
 print(simple_results)
+
+
+
+#hm.export_dataframe_to_xlsx(pd.DataFrame(m.weights, r"" + "./app/matchingTool/src/TestCases/Data/CSV/Results/weights_before"))
 
 constants["Metric"] = "Price"
 score_function_string = hm.generate_score_function_string(constants)
@@ -201,9 +211,11 @@ if tuple(m.supply['Element'].tolist()) in constants["element_linear"] or tuple(m
 else:
     m.supply['GWP pr element'], m.supply['Transportation'] = m.supply.eval(m.score_function_string_2d)   
 
-hm.export_dataframe_to_xlsx(m.supply, r"" + "./TestCases/Data/CSV/test_supply_IFC_result1.xlsx")
-hm.export_dataframe_to_xlsx(m.demand, r"" + "./TestCases/Data/CSV/test_demand_IFS_result1.xlsx")
-hm.export_dataframe_to_xlsx(m.pairs, r"" + "./TestCases/Data/CSV/pairs1.xlsx")
+
+#hm.export_dataframe_to_xlsx(m.weights, r"" + "./app/matchingTool/src/TestCases/Data/CSV/Results/weights")
+hm.export_dataframe_to_xlsx(m.supply, r"" + "./app/matchingTool/src/TestCases/Data/CSV/Results/test_supply_IFC_result1.xlsx")
+hm.export_dataframe_to_xlsx(m.demand, r"" + "./app/matchingTool/src/TestCases/Data/CSV/Results/test_demand_IFS_result1.xlsx")
+hm.export_dataframe_to_xlsx(m.pairs, r"" + "./app/matchingTool/src/TestCases/Data/CSV/Results/pairs.xlsx")
 
 
 

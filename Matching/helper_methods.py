@@ -11,7 +11,7 @@ import helper_methods_plotting as plot
 
 import json
 # Opening JSON file
-with open('Matching\Data\LCA_data.json') as json_file:
+with open('app\matchingTool\src\Matching\Data\LCA_data.json') as json_file:
     data = json.load(json_file)
 
 # ==== HELPER METHODS ====

@@ -563,7 +563,8 @@ def add_necessary_columns_pdf(dataframe, constants):
 
     #Adding necessary columns based on the chosen metric
     for row in range(len(dataframe)):
-        material = dataframe.iloc[row][dataframe.columns.get_loc("Material")].split()[0] #NOTE: Assumes that material-column has the material name as the first word, e.g. "Timber C14" or "Steel ASTM A992"
+        #material = dataframe.iloc[row][dataframe.columns.get_loc("Material")].split()[0] #NOTE: Assumes that material-column has the material name as the first word, e.g. "Timber C14" or "Steel ASTM A992"
+        material = dataframe.iloc[row][dataframe.columns.get_loc("Material")]
         dataframe.iloc[row, dataframe.columns.get_loc("Density")] = constants[f"{material.upper()}_DENSITY"]
 
         if element_type == "S":

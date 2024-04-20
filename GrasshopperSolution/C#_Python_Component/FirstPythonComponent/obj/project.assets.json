@@ -933,11 +933,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\kollb\\OneDrive - NTNU\\Skole\\5 klasse\\Master\\MasterVS\\Master-Thesis-NTNU\\GrasshopperSolution\\C#_Python_Component\\FirstPythonComponent\\FirstPythonComponent.csproj",
+      "projectUniqueName": "C:\\Users\\kollb\\Master\\Master-Thesis-NTNU\\app\\matchingTool\\src\\GrasshopperSolution\\C#_Python_Component\\FirstPythonComponent\\FirstPythonComponent.csproj",
       "projectName": "FirstPythonComponent",
-      "projectPath": "C:\\Users\\kollb\\OneDrive - NTNU\\Skole\\5 klasse\\Master\\MasterVS\\Master-Thesis-NTNU\\GrasshopperSolution\\C#_Python_Component\\FirstPythonComponent\\FirstPythonComponent.csproj",
+      "projectPath": "C:\\Users\\kollb\\Master\\Master-Thesis-NTNU\\app\\matchingTool\\src\\GrasshopperSolution\\C#_Python_Component\\FirstPythonComponent\\FirstPythonComponent.csproj",
       "packagesPath": "C:\\Users\\kollb\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\kollb\\OneDrive - NTNU\\Skole\\5 klasse\\Master\\MasterVS\\Master-Thesis-NTNU\\GrasshopperSolution\\C#_Python_Component\\FirstPythonComponent\\obj\\",
+      "outputPath": "C:\\Users\\kollb\\Master\\Master-Thesis-NTNU\\app\\matchingTool\\src\\GrasshopperSolution\\C#_Python_Component\\FirstPythonComponent\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\kollb\\AppData\\Roaming\\NuGet\\NuGet.Config",

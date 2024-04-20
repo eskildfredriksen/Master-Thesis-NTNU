@@ -3,7 +3,7 @@ import requests
 
 import json
 # Opening JSON file
-with open('Matching\Data\LCA_data.json') as json_file:
+with open('app\matchingTool\src\Matching\Data\LCA_data.json') as json_file:
     data = json.load(json_file)
 
 def calculate_lca(length, area, gwp_factor, include_transportation=False, distance=100, transport_gwp=100, density=100):
