@@ -127,17 +127,21 @@ def check_material(material_input):
     concrete_words = ["concrete", "betong", "beton"]
     timber_words = ["tre", "heltre","wood", "timber"]
     material_name = "N/A"
+    material_letter = "N/A"
     quality = None
     for i in material_input.split():
         if i.lower() in steel_words:
             material_name = "Steel"
+            material_letter = "s"
         elif i.lower() in concrete_words:
             material_name = "Concrete"
+            material_letter = "c"
         elif i.lower() in timber_words:
             material_name = "Timber" 
+            material_letter = "t"
         quality = extract_number(material_input)
 
-    return material_name, quality
+    return material_name, material_letter, quality
 
 
 
@@ -172,7 +176,9 @@ def extract_beam(beam_input,index):
 
     for style in styles:
         material = style.original_name()
-        material_name, quality = check_material(material)
+        material_name, material_letter, quality = check_material(material)
+        quality_short = material_letter + str(quality)
+
 
 
     x = round(ifcopenshell.util.shape.get_x(shape.geometry),2)
@@ -192,7 +198,7 @@ def extract_beam(beam_input,index):
         Iy = None
 
     #print(beam_input, id, x,y,z,profile, material) 
-    beam_dict ={" Guid ": guid , " Element ": beam_input , " Material ": material_name , "Quality": quality, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
+    beam_dict ={" Guid ": guid , " Element ": beam_input , " Material ": material_name , "Quality": quality, "Material label": quality_short, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
     if material_name == "N/A":
         None
     else:
@@ -227,7 +233,8 @@ def extract_column(col_input,index):
 
     for style in styles:
         material = style.original_name()
-        material_name, quality = check_material(material)
+        material_name, material_letter, quality = check_material(material)
+        quality_short = material_letter + str(quality)
         
     x = round(ifcopenshell.util.shape.get_x(shape.geometry),2)
     y = round(ifcopenshell.util.shape.get_y(shape.geometry),2)
@@ -249,7 +256,7 @@ def extract_column(col_input,index):
     
 
     #print(col_input,id, x,y,z,profile, material) 
-    col_dict ={" Guid ": guid , " Element ": col_input , " Material ": material_name , "Quality": quality, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
+    col_dict ={" Guid ": guid , " Element ": col_input , " Material ": material_name ,"Material label": quality_short,  "Quality": quality, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
     if material_name == "N/A":
         None
     else:
@@ -292,7 +299,13 @@ def extract_slab(slab_input,index):
 
     for style in styles:
         material = style.original_name()
-        material_name, quality = check_material(material)
+        material_name, material_letter, quality = check_material(material)
+        quality_short = material_letter + str(quality)
+        if material_name == "N/A":
+            material_name = "Concrete"
+        else:
+            None
+
 
 
 
@@ -311,7 +324,7 @@ def extract_slab(slab_input,index):
     
 
     #print(slab_input,id, x,y,z, material) 
-    slab_dict = {" Guid ": guid , " Element ": "IfcSlab" , " Material ": material_name , "Quality": quality, " Length [ m ]": length ," Height [ m ]": thickness , " Width [ m ]": width , "Volume [m3]" : volume, "Area [m2]": area}
+    slab_dict = {" Guid ": guid , " Element ": "IfcSlab" , " Material ": material_name , "Quality": quality,"Material label": quality_short, " Length [ m ]": length ," Height [ m ]": thickness , " Width [ m ]": width , "Volume [m3]" : volume, "Area [m2]": area}
     #if material_name == "N/A" or length < 0.5 or width < 0.5:
     #    None
     #else:
@@ -354,7 +367,12 @@ def extract_wall(wall_input,index):
 
     for style in styles:
         material = style.original_name()
-        material_name, quality = check_material(material)
+        material_name, material_letter, quality = check_material(material)
+        quality_short = material_letter + str(quality)
+        if material_name == "N/A":
+            material_name = "Concrete"
+        else:
+            None
 
     x = round(ifcopenshell.util.shape.get_x(shape.geometry),2)
     y = round(ifcopenshell.util.shape.get_y(shape.geometry),2)
@@ -371,7 +389,7 @@ def extract_wall(wall_input,index):
     
 
     
-    wall_dict = {" Guid ": guid , " Element ": "IfcWall" , " Material ": material_name , "Quality": quality, " Length [ m ]": length," Height [ m ]": height , " Width [ m ]": thickness , "Volume [m3]" : volume, "Area [m2]": area}
+    wall_dict = {" Guid ": guid , " Element ": "IfcWall" , " Material ": material_name , "Quality": quality,"Material label": quality_short, " Length [ m ]": length," Height [ m ]": height , " Width [ m ]": thickness , "Volume [m3]" : volume, "Area [m2]": area}
     #print(wall_input,id, x,y,z, material)
     #if material_name == "N/A" or height < 0.5 or thickness < 0.5:
     #    None
@@ -415,7 +433,15 @@ def extract_window_door(wall_input,index):
 
     for style in styles:
         material = style.original_name()
-        material_name, quality = check_material(material)
+        material_name, material_letter, quality = check_material(material)
+        quality_short = material_letter + str(quality)
+        if material_name == "N/A":
+            material_name = "Timber"
+        else:
+            None
+        
+
+        
 
     x = round(ifcopenshell.util.shape.get_x(shape.geometry),2)
     y = round(ifcopenshell.util.shape.get_y(shape.geometry),2)
@@ -432,7 +458,7 @@ def extract_window_door(wall_input,index):
     
 
     
-    wall_dict = {" Guid ": guid , " Element ": wall_input , " Material ": material_name , "Quality": quality, " Length [ m ]": thickness," Height [ m ]": height , " Width [ m ]": length , "Volume [m3]" : volume, "Area [m2]": area}
+    wall_dict = {" Guid ": guid , " Element ": wall_input , " Material ": material_name , "Quality": quality, "Material label": quality_short, " Length [ m ]": thickness," Height [ m ]": height , " Width [ m ]": length , "Volume [m3]" : volume, "Area [m2]": area}
     #print(wall_input,id, x,y,z, material)
     #if material_name == "N/A" or height < 0.5 or thickness < 0.5:
     #    None
