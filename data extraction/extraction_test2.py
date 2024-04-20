@@ -4,12 +4,12 @@ import ifcopenshell.util.shape
 import ifcopenshell.util.unit as unit 
 import ifcopenshell.util.shape
 import ifcopenshell.util.element
-import numpy
+import numpy as np
 import pandas as pd
 import re
 #test
 #extract file
-ifc_file = ifcopenshell.open(r'C:\Users\e_ski\OneDrive\Documents\NTNU\10. semester\Masteroppgave\IFC\steel frame.ifc')
+ifc_file = ifcopenshell.open(r'C:\Users\e_ski\OneDrive\Documents\NTNU\10. semester\Masteroppgave\IFC\test skrå elementer.ifc')
 
 
 #scaling
@@ -140,6 +140,34 @@ def check_material(material_input):
     return material_name, quality
 
 
+def is_straight_orientation(orientation_input):
+    # Define tolerance for alignment with axes
+    tolerance = 0.95
+
+    # Normalize the orientation vector
+    orientation_input /= np.linalg.norm(orientation_input)
+
+    # Define unit vectors along X, Y, and Z axes
+    x_axis = np.array([1., 0., 0.])
+    y_axis = np.array([0., 1., 0.])
+    z_axis = np.array([0., 0., 1.])
+
+    # Calculate the dot product between orientation vector and each axis vector
+    dot_product_x = np.abs(np.dot(orientation_input, x_axis))
+    dot_product_y = np.abs(np.dot(orientation_input, y_axis))
+    dot_product_z = np.abs(np.dot(orientation_input, z_axis))
+
+    # Check if the orientation aligns closely with any axis
+    if dot_product_x >= tolerance:
+        return True
+    elif dot_product_y >= tolerance:
+        return True
+    elif dot_product_z >= tolerance:
+        return True
+    else:
+        return False
+
+
 
 def extract_beam(beam_input,index):
     beam = ifc_file.by_type(beam_input)[index]
@@ -165,14 +193,10 @@ def extract_beam(beam_input,index):
 
 
     location = matrix[:,3][0:3]             # may be relevant for checking robustness of code and if an element actually is a beam or not
-    orientation = matrix[:,0][0:3]          # may be relevant for checking robustness of code and if an element actually is a beam or not
+    orientation = np.array(matrix[:,0][0:3])
 
-
-    styles = shape.geometry.materials
-
-    for style in styles:
-        material = style.original_name()
-        material_name, quality = check_material(material)
+    #print(orientation)
+    
 
 
     x = round(ifcopenshell.util.shape.get_x(shape.geometry),2)
@@ -181,6 +205,26 @@ def extract_beam(beam_input,index):
 
     dims0 = [x,y,z]
     dims = sorted(dims0)
+
+
+    if is_straight_orientation(orientation) == False:
+        length = np.sqrt(dims[-1]**2 + dims[-2]**2)
+        #print(length)
+    else:
+        None
+        
+    
+   # print(x)
+   # print(y)
+   # print(z)
+   
+    styles = shape.geometry.materials
+
+    for style in styles:
+        material = style.original_name()
+        material_name, quality = check_material(material)
+
+    
 
     if profile in steel_profiles.keys():    
         area = round(steel_profiles[profile]["A"],3)
@@ -219,8 +263,13 @@ def extract_column(col_input,index):
 
     matrix = shape.transformation.matrix.data
     matrix = ifcopenshell.util.shape.get_shape_matrix(shape)
+
     location = matrix[:,3][0:3]
     orientation = matrix[:,0][0:3]
+
+    
+    print(orientation)
+    print(matrix)
 
 
     styles = shape.geometry.materials
@@ -235,6 +284,18 @@ def extract_column(col_input,index):
 
     dims0 = [x,y,z]
     dims = sorted(dims0)
+
+    if is_straight_orientation(orientation) == False:
+        length = np.sqrt(dims[-1]**2 + dims[-2]**2)
+        print(length)
+    else:
+        None
+
+    
+
+    print(x)
+    print(y)
+    print(z)
 
 
     if profile in steel_profiles.keys():    
@@ -448,7 +509,7 @@ i_wall = 0
 i_window = 0
 i_door = 0 
 
-for i in range(len(elements_sorted)-1):
+for i in range(len(elements_sorted)):
     element = elements_sorted[i]
     if element == "IfcBeam":
         extract_beam(element,i_beam)
@@ -477,7 +538,7 @@ for i in range(len(elements_sorted)-1):
         None
 
 ext_elements_df = pd.DataFrame(extracted_elements)
-ext_elements_df.to_excel(r'C:\Users\e_ski\OneDrive\Documents\NTNU\10. semester\Masteroppgave\Excel\Demand - homemade.xlsx')
+ext_elements_df.to_excel(r'C:\Users\e_ski\OneDrive\Documents\NTNU\10. semester\Masteroppgave\Excel\test skrå elementer.xlsx')
 
 
 # Add desired quantites and properties to the DataFrame
