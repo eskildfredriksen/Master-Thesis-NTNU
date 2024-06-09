@@ -7,63 +7,24 @@ import ifcopenshell.util.element
 import numpy 
 import pandas as pd
 import re
-#import OCC.Bnd
 
 
-#test
+
 #extract file
-ifc_file = ifcopenshell.open(r'C:\Users\e_ski\OneDrive\Documents\NTNU\10. semester\Masteroppgave\IFC\Tennebekk\22018_TennebekkBuss_RIB hollow core sletta unødvnedig 2x3 2.ifc')
-
-
-#scaling
-import ifcopenshell.util.element
-
-
+ifc_file = ifcopenshell.open(r'C:\Users\e_ski\Downloads\PHBUP_RIBp.ifc')
 
 products = ifc_file.by_type('IfcProduct')
+
+#element_assemblies = ifc_file.by_type('IfcElementAssembly')
 #print(products)
 
 
-
-#entities = ifc_file.by_type(entity_type)
-
-
-#entity = ifc_file.by_entity()
-
-#print(products)
+#"IfcElementAssembly",
 
 
 
-elements = []
-
-#"IfcElementAssembly"
 
 
-for product in products:
-    id = product.is_a()
-    allowed_names = {"IfcBeam", "IfcColumn","IfcElementAssembly", "IfcWall", "IfcWallType", "IfcWallStandardCase", "IfcSlab","IfcDoor", "IfcWindow"}
-    if id in allowed_names:
-        #print(product)
-        #if "Hollow Core Slab" in str(product): #sorts IFC hollow core slab systems as IfcSlab
-        #    elements.append("IfcSlab")
-        
-        #elif "Structural Beam System" in str(product): #sorts IFC beam systems as IfcBeam
-        #    elements.append("IfcBeam")
-        #else:    
-        elements.append(id)
-    else:
-        None
-
-#print(elements)
-
-#print(i_hc)
-#print(i_slab)
-#print(i_beam)
-
-
-elements_sorted = sorted(elements)
-
-#print(elements_sorted)
 
 extracted_elements = []
 
@@ -137,9 +98,6 @@ steel_profiles = {
 }
 
 
-
-
-
 def extract_number(text):
     # Define the regex pattern to match numbers
     pattern = r'\d+'
@@ -158,7 +116,8 @@ def check_material(material_input):
     material_name = "N/A"
     material_letter = "N/A"
     quality = None
-    for i in material_input.split():
+    material_split = material_input.split("/")
+    for i in material_split:
         if i.lower() in steel_words:
             material_name = "Steel"
             material_letter = "s"
@@ -172,22 +131,22 @@ def check_material(material_input):
 
     return material_name, material_letter, quality
 
-
-
-def extract_beam(beam_input,index):
-    beam = ifc_file.by_type(beam_input)[index]
-    beam_type = ifcopenshell.util.element.get_type(beam)
+def extract_beam(beam_input):
+    beam = beam_input
     
+
+    beam_type = ifcopenshell.util.element.get_type(beam)
+    profile = "Beam"
+    profile_shape = "Test"
+
+
     psets_dict = ifcopenshell.util.element.get_psets(beam_type)
     psets = ifcopenshell.util.element.get_psets(beam)
     psets_props = ifcopenshell.util.element.get_psets(beam, psets_only=True)
     psets_quantities = ifcopenshell.util.element.get_psets(beam, qtos_only=True)
-    print(psets)
-    profile = psets_props['Pset_BeamCommon']['Reference']
-    profile_shape = psets_props['Other']['Family Name']
-
-    #print(profile)
-    #print(profile_shape)
+    #print(psets)
+    #profile = psets_props['Pset_BeamCommon']['Reference']
+    #profile_shape = psets_props['Other']['Family Name']
 
     settings = geom.settings()
     shape = geom.create_shape(settings, beam)
@@ -210,10 +169,13 @@ def extract_beam(beam_input,index):
 
     for style in styles:
         material = style.original_name()
+        #print(material)
         material_name, material_letter, quality = check_material(material)
         quality_short = material_letter + str(quality)
-
-
+    
+    #representations = beam.Representation.Representations
+    
+    
 
     x = round(ifcopenshell.util.shape.get_x(shape.geometry),2)
     y = round(ifcopenshell.util.shape.get_y(shape.geometry),2)
@@ -225,6 +187,7 @@ def extract_beam(beam_input,index):
     
     
 
+
     if profile in steel_profiles.keys():    
         area = round(steel_profiles[profile]["A"],3)
         volume = round(dims[-1]*area,3)
@@ -232,32 +195,37 @@ def extract_beam(beam_input,index):
     else:
         area = round(ifcopenshell.util.shape.get_area(shape.geometry),2) / 1000
         volume = dims[-1]*area
-        if "rectangular" in profile_shape.lower():
-            Iy = round(1/12 * y * z**3 * 10**6,2)
-        elif "circular" or "round" in profile_shape.lower():
-            Iy = (numpy.Pi/4 * x**4 * 10**6,2) #divided by e6
+        if material_name == "Concrete":
+            if x == y or "circular" or "round" in profile_shape.lower():
+                Iy = round(numpy.pi/4 * x**4, 2) #divided by e6
+            else:
+                Iy = round(1/12 * x * y**3, 2)
         else: 
             Iy = None
         
 
     #print(beam_input, id, x,y,z,profile, material) 
-    beam_dict ={" Guid ": guid , " Element ": beam_input , " Material ": material_name , "Quality": quality, "Material label": quality_short, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
-    #if material_name == "N/A":
-    #    None
-    #else:
-    extracted_elements.append(beam_dict)
+    beam_dict ={" Guid ": element_guid , " Element ": "IfcBeam" , " Material ": material_name , "Quality": quality, "Material label": quality_short, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
+    if material_name == "N/A":
+        None
+    elif x < 0.5: 
+        None
+    else:
+        extracted_elements.append(beam_dict)
     
-def extract_column(col_input,index):
-    col = ifc_file.by_type(col_input)[index]
+def extract_column(col_input):
+
+    col = col_input
     col_type = ifcopenshell.util.element.get_type(col)
     
+
     psets_dict = ifcopenshell.util.element.get_psets(col_type)
     psets = ifcopenshell.util.element.get_psets(col)
     psets_props = ifcopenshell.util.element.get_psets(col, psets_only=True)
     psets_quantities = ifcopenshell.util.element.get_psets(col, qtos_only=True)
-    profile = psets_props['Pset_ColumnCommon']['Reference']
+    #profile = psets_props['Pset_ColumnCommon']['Reference']
 
-    profile_shape = psets_props['Other']['Family Name']
+    #profile_shape = psets_props['Other']['Family Name']
 
     #print(psets_props)
 
@@ -267,6 +235,7 @@ def extract_column(col_input,index):
     element_guid = shape.guid
     element_id = shape.id
     guid = ifc_file.by_guid(shape.guid)
+    
 
     id = shape.geometry.id
 
@@ -277,6 +246,8 @@ def extract_column(col_input,index):
 
 
     styles = shape.geometry.materials
+    
+
 
     for style in styles:
         material = style.original_name()
@@ -290,7 +261,8 @@ def extract_column(col_input,index):
     dims0 = [x,y,z]
     dims = sorted(dims0)
 
-    
+    profile = "Column"
+    profile_shape = "Test"
 
 
     if profile in steel_profiles.keys():    
@@ -301,28 +273,32 @@ def extract_column(col_input,index):
         area = round(ifcopenshell.util.shape.get_area(shape.geometry),2) / 1000           #vurdere å fjerne
         volume = dims[-1]*area
         if "rectangular" or "quadratic" in profile_shape.lower():
-            Iy = round(1/12 * x * y**3 * 10**6,2) #divided by e6 
+            Iy = round(1/12 * x * y**3 ,2) #divided by e6 
         elif "circular" or "round" in profile_shape.lower():
-            Iy = (numpy.Pi/4 * x**4 * 10**6,2) #divided by e6
+            Iy = round(numpy.pi/4 * x**4 ,2) #divided by e6
         else:
             Iy = None
 
     
 
     #print(col_input,id, x,y,z,profile, material) 
-    col_dict ={" Guid ": guid , " Element ": col_input , " Material ": material_name ,"Material label": quality_short,  "Quality": quality, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
-    #if material_name == "N/A":
-    #    None
-    #else:
-    extracted_elements.append(col_dict)
+    col_dict ={" Guid ": element_guid , " Element ": "IfcColumn" , " Material ": material_name ,"Material label": quality_short,  "Quality": quality, " Length [ m ]": x ," Height [ m ]": z , " Width [ m ]": y , "Volume [m3]" : volume, "Area [m2]": area, "Profile" :profile, "Iy e-6 [mm4]": Iy}
+    if material_name == "N/A":
+        None
+    elif x < 0.5: 
+        None
+    else:
+        extracted_elements.append(col_dict)
+    
 
-def extract_slab(slab_input,index):
+def extract_slab(slab_input):
+    slab = slab_input
     slab = ifc_file.by_type(slab_input)[index]
     #print(slab)
     slab_type = ifcopenshell.util.element.get_type(slab)
     #print(slab_type)
     psets = ifcopenshell.util.element.get_psets(slab)
-    print(psets)
+    #print(psets)
 
     """
     if "Hollow Core Slab" in str(products[i]):
@@ -430,6 +406,7 @@ def extract_slab(slab_input,index):
 
     styles = shape.geometry.materials
 
+
     # Correct material fetching method
     
 
@@ -471,21 +448,28 @@ def extract_slab(slab_input,index):
     #print(slab_dict)
     extracted_elements.append(slab_dict)
 
-def extract_hollow_core_slab(slab_input,index):
-    slab = ifc_file.by_type(slab_input)[index]
-    #print(slab)
-    slab_type = ifcopenshell.util.element.get_type(slab)
+
+
+def extract_hollow_core_slab(hollow_core_slab):
+    
+    txt = str(hollow_core_slab)
+    split = txt.split("'")
+    guid = split[1]
+    
+    
+    slab_type = ifcopenshell.util.element.get_type(hollow_core_slab)
     #print(slab_type)
-    psets = ifcopenshell.util.element.get_psets(slab)
+    psets = ifcopenshell.util.element.get_psets(hollow_core_slab)
+   
     #print(psets)
     
     # Get all properties and quantities of the wall, including inherited type properties
     #psets = ifcopenshell.util.element.get_psets(slab)
 
     # Get only quantities and not properties
-    psets_quantities = ifcopenshell.util.element.get_psets(slab, qtos_only=True)
+    psets_quantities = ifcopenshell.util.element.get_psets(hollow_core_slab, qtos_only=True)
     #print(psets_quantities)
-    psets_props = ifcopenshell.util.element.get_psets(slab, psets_only=True)
+    psets_props = ifcopenshell.util.element.get_psets(hollow_core_slab, psets_only=True)
     #print(psets_props)
     #type = psets_props['Pset_ReinforcementBarPitchOfSlab']['Description']
 
@@ -493,12 +477,12 @@ def extract_hollow_core_slab(slab_input,index):
     
     #area = round(psets['Dimensions']['Area'],2)
     #volume = round(psets['Dimensions']['Volume'],2)
-    length = round(psets['Data(Type)']['Element Length'],2)
+    #length = round(psets['Data(Type)']['Element Length'],2)
     #thickness = round(psets['Dimensions']['Thickness'],2)
     #length = volume / thickness
-    width = round(psets['Data(Type)']['Element Width'],2) 
+    width = round(psets['BaseQuantities']['Width'],2) / 1000
     #area = round(volume / length,2)
-
+    
     #print(area)
     #print(volume)
     #print(length)
@@ -516,7 +500,7 @@ def extract_hollow_core_slab(slab_input,index):
 
     #print(material_info)
     """
-    #settings = geom.settings()
+    settings = geom.settings()
     settings = geom.settings()
     
     shape = geom.create_shape(settings, slab)
@@ -575,17 +559,20 @@ def extract_hollow_core_slab(slab_input,index):
     #print(z)
     #element_guid = None
     """
-
+    
+    thickness_norconsult = 0.265
     #print(slab_input,id, x,y,z, material) 
     #slab_dict = {" Guid ": element_guid , " Element ": "IfcSlab" , " Material": material_info[0] , "Quality": material_info[2],"Material label": material_info[1], " Length [ m ]": length ," Height [ m ]": thickness , " Width [ m ]": width , "Volume [m3]" : volume, "Area [m2]": area}
+    slab_dict = {" Guid ": guid , " Element ": "IfcSlab" , " Material ": "Hollow Core Concrete" , "Quality": None,"Material label": None, " Length [ m ]": None ," Height [ m ]": thickness_norconsult , " Width [ m ]": width , "Volume [m3]" : None, "Area [m2]": None}
+    
     #if material_name == "N/A" or length < 0.5 or width < 0.5:
     #    None
     #else:
     #print(slab_dict)
-    #extracted_elements.append(slab_dict)
+    extracted_elements.append(slab_dict)
 
-def extract_wall(wall_input,index):
-    wall = ifc_file.by_type("IfcWall")[index]
+def extract_wall(wall_input):
+    wall = wall_input
     wall_type = ifcopenshell.util.element.get_type(wall)
 
     psets_dict = ifcopenshell.util.element.get_psets(wall_type)
@@ -643,15 +630,15 @@ def extract_wall(wall_input,index):
     
 
     
-    wall_dict = {" Guid ": guid , " Element ": "IfcWall" , " Material ": material_name , "Quality": quality,"Material label": quality_short, " Length [ m ]": length," Height [ m ]": height , " Width [ m ]": thickness , "Volume [m3]" : volume, "Area [m2]": area}
+    wall_dict = {" Guid ": element_guid , " Element ": "IfcWall" , " Material ": material_name , "Quality": quality,"Material label": quality_short, " Length [ m ]": length," Height [ m ]": height , " Width [ m ]": thickness , "Volume [m3]" : volume, "Area [m2]": area}
     #print(wall_input,id, x,y,z, material)
     #if material_name == "N/A" or height < 0.5 or thickness < 0.5:
     #    None
     #else:
     extracted_elements.append(wall_dict)
 
-def extract_window_door(wall_input,index):
-    wall = ifc_file.by_type("IfcWindow")[index]
+def extract_window_door(wall_input):
+    wall = wall_input
     wall_type = ifcopenshell.util.element.get_type(wall)
 
     psets_dict = ifcopenshell.util.element.get_psets(wall_type)
@@ -729,45 +716,60 @@ i_wall = 0
 i_window = 0
 i_door = 0 
 
+#extract_hollow_core_slab(test,0)
+
 #print(products)
 #print(elements_sorted)
 #print(len(elements_sorted))
 
-for i in range(len(elements_sorted)):
-    element = elements_sorted[i]
-    if element == "IfcBeam":
-        extract_beam(element,i_beam)
-        i_beam +=1
-    elif element == "IfcColumn":
-        extract_column(element,i_col)
-        i_col += 1
+print(products)
 
-    elif element == "IfcSlab":
-        extract_slab(element,i_slab)
-        i_slab +=1
+for product in products:
+    id = product.is_a()
+    allowed_names = {"IfcBeam", "IfcColumn", "IfcWall", "IfcElementAssembly", "IfcWallType", "IfcWallStandardCase", "IfcSlab","IfcDoor", "IfcWindow"}
+    if id in allowed_names:
+        element = id
+        if element == "IfcBeam":
+            extract_beam(product)
+            i_beam +=1
 
-    #elif element == "IfcElementAssembly":
-    #    if "Hollow Core Slab" in str(products[i]):
-    #        extract_hollow_core_slab(element, i_hollow_core_slab)        
-    #    i_hollow_core_slab +=1
+        elif element == "IfcColumn":
+            extract_column(product)
+            i_col += 1
 
-    elif element == "IfcWall" or element == "IfcWallType" or element == "IfcWallStandardCase":
-        extract_wall(element,i_wall)
-        i_wall +=1
+        elif element == "IfcSlab":
+            extract_slab(product)
+            #i_slab +=1
 
-    elif element == "IfcWindow":
-        extract_window_door(element,i_window)
-        i_window +=1
+        elif element == "IfcElementAssembly":
+            
+            if "slab" in product.Name.lower():
+                extract_hollow_core_slab(product)        
+                i_hollow_core_slab +=1
+            
+            else:
+                None
 
-    elif element == "IfcDoor":
-        extract_window_door(element,i_door) #same function
-        i_door +=1
+        elif element == "IfcWall" or element == "IfcWallType" or element == "IfcWallStandardCase":
+            extract_wall(product)
+            i_wall +=1
+
+        elif element == "IfcWindow":
+            extract_window_door(product)
+            i_window +=1
+
+        elif element == "IfcDoor":
+            extract_window_door(product) #same function
+            i_door +=1
    
-    else:
-        None
+    
+#extracted_elements_sorted = extracted_elements.sort_values(" Element ")
+
+
 
 ext_elements_df = pd.DataFrame(extracted_elements)
-ext_elements_df.to_excel(r'C:\Users\e_ski\OneDrive\Documents\NTNU\10. semester\Masteroppgave\Study case Tennebekk\Tennebekk 2x3.xlsx')
+ext_elements_df_sort = ext_elements_df.sort_values(" Element ")
+ext_elements_df_sort.to_excel(r'C:\Users\e_ski\OneDrive\Documents\NTNU\10. semester\Masteroppgave\Excel\Test Norconsult fil.xlsx')
 
 
 # Add desired quantites and properties to the DataFrame
